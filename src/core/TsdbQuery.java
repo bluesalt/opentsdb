@@ -107,10 +107,21 @@ final class TsdbQuery implements Query {
 
   /** Minimum time interval (in seconds) wanted between each data point. */
   private int sample_interval;
+  
+  private boolean exact;
 
   /** Constructor. */
   public TsdbQuery(final TSDB tsdb) {
     this.tsdb = tsdb;
+	this.exact = false;
+  }
+
+  public void setExact(boolean exact) {
+	 this.exact = exact;
+  }
+
+  public boolean getExact() {
+	  return this.exact;
   }
 
   public void setStartTime(final long timestamp) {
@@ -401,7 +412,13 @@ final class TsdbQuery implements Query {
     // but this doesn't really matter.
     // Additionally, in case our sample_interval is large, we need to look
     // even further before/after, so use that too.
-    return getStartTime() - Const.MAX_TIMESPAN * 2 - sample_interval;
+	long startTime = 0;
+	if (!exact) 
+	   startTime = getStartTime() - Const.MAX_TIMESPAN * 2 - sample_interval;
+	else
+	   startTime = getStartTime();
+	LOG.info("Start Time: " + startTime);   
+    return startTime; 
   }
 
   /** Returns the UNIX timestamp at which we must stop scanning.  */
@@ -414,7 +431,13 @@ final class TsdbQuery implements Query {
     // again that doesn't really matter.
     // Additionally, in case our sample_interval is large, we need to look
     // even further before/after, so use that too.
-    return getEndTime() + Const.MAX_TIMESPAN + 1 + sample_interval;
+	long endTime = 0;
+	if (!exact)
+		endTime = getEndTime() + Const.MAX_TIMESPAN + 1 + sample_interval;
+	else
+		endTime = getEndTime();
+	LOG.info("End Time : " + endTime);	
+    return endTime; 
   }
 
   /**

@@ -118,6 +118,10 @@ final class GraphHandler implements HttpRpc {
     final String basepath = getGnuplotBasePath(query);
     final long start_time = getQueryStringDate(query, "start");
     final boolean nocache = query.hasQueryStringParam("nocache");
+	final boolean exact = query.hasQueryStringParam("exact");
+	final boolean ascii = query.hasQueryStringParam("ascii");
+	LOG.info("Exact query required ? " + exact);
+	LOG.info("Ascii reponse ? " + ascii);
     if (start_time == -1) {
       throw BadRequestException.missingParameter("start");
     }
@@ -133,6 +137,7 @@ final class GraphHandler implements HttpRpc {
     Query[] tsdbqueries;
     List<String> options;
     tsdbqueries = parseQuery(tsdb, query);
+	LOG.info("The length of tsdbqueries[] : " + tsdbqueries.length);
     options = query.getQueryStringParams("o");
     if (options == null) {
       options = new ArrayList<String>(tsdbqueries.length);
@@ -144,6 +149,7 @@ final class GraphHandler implements HttpRpc {
         + tsdbqueries.length + " `m' parameters.");
     }
     for (final Query tsdbquery : tsdbqueries) {
+	  tsdbquery.setExact(exact);
       try {
         tsdbquery.setStartTime(start_time);
       } catch (IllegalArgumentException e) {
@@ -166,6 +172,7 @@ final class GraphHandler implements HttpRpc {
       try {  // execute the TSDB query!
         // XXX This is slow and will block Netty.  TODO(tsuna): Don't block.
         // TODO(tsuna): Optimization: run each query in parallel.
+		LOG.info("Exact query required ? " + tsdbqueries[i].getExact());
         final DataPoints[] series = tsdbqueries[i].run();
         for (final DataPoints datapoints : series) {
           plot.add(datapoints, options.get(i));
@@ -182,7 +189,7 @@ final class GraphHandler implements HttpRpc {
     }
     tsdbqueries = null;  // free()
 
-    if (query.hasQueryStringParam("ascii")) {
+    if (ascii) {
       respondAsciiQuery(query, max_age, basepath, plot);
       return;
     }

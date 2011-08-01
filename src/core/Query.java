@@ -23,6 +23,8 @@ import net.opentsdb.uid.NoSuchUniqueName;
  */
 public interface Query {
 
+  void setExact(boolean exact);
+  boolean getExact();
   /**
    * Sets the start time of the graph.
    * @param timestamp The start time, all the data points returned will have a
