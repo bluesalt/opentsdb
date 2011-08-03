@@ -260,8 +260,8 @@ final class TsdbQuery implements Query {
 		LOG.info(">>>>>>>>>>> size of rows : " + rows.size()); 
         for (final ArrayList<KeyValue> row : rows) {
 		  LOG.info(">>>>>>>>>>> size of row : " + row.size()); 
-			
           final byte[] key = row.get(0).key();
+		  LOG.info(">>>>>>>>>>> Key : " + key); 
           if (Bytes.memcmp(metric, key, 0, metric_width) != 0) {
             throw new IllegalDataException("HBase returned a row that doesn't match"
                 + " our scanner (" + scanner + ")! " + row + " does not start"
@@ -306,9 +306,18 @@ final class TsdbQuery implements Query {
     if (group_bys == null) {
       // We haven't been asked to find groups, so let's put all the spans
       // together in the same group.
+	  long startTime = 0;
+	  long endTime = 0;
+	  if (exact) {
+		  startTime = getStartTime();
+		  endTime = getEndTime();
+	  }else{
+		  startTime = getScanStartTime();
+		  endTime = getScanEndTime();
+	  }
       final SpanGroup group = new SpanGroup(tsdb,
-                                            getScanStartTime(),
-                                            getScanEndTime(),
+	  										startTime,
+											endTime,
                                             spans.values(),
                                             rate,
                                             aggregator,
@@ -415,13 +424,7 @@ final class TsdbQuery implements Query {
     // but this doesn't really matter.
     // Additionally, in case our sample_interval is large, we need to look
     // even further before/after, so use that too.
-	long startTime = 0;
-	if (!exact) 
-	   startTime = getStartTime() - Const.MAX_TIMESPAN * 2 - sample_interval;
-	else
-	   startTime = getStartTime();
-	LOG.info("Start Time: " + startTime);   
-    return startTime; 
+    return getStartTime() - Const.MAX_TIMESPAN * 2 - sample_interval;
   }
 
   /** Returns the UNIX timestamp at which we must stop scanning.  */
@@ -434,13 +437,7 @@ final class TsdbQuery implements Query {
     // again that doesn't really matter.
     // Additionally, in case our sample_interval is large, we need to look
     // even further before/after, so use that too.
-	long endTime = 0;
-	if (!exact)
-		endTime = getEndTime() + Const.MAX_TIMESPAN + 1 + sample_interval;
-	else
-		endTime = getEndTime();
-	LOG.info("End Time : " + endTime);	
-    return endTime; 
+    return getEndTime() + Const.MAX_TIMESPAN + 1 + sample_interval;
   }
 
   /**
