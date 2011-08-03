@@ -257,7 +257,10 @@ final class TsdbQuery implements Query {
       ArrayList<ArrayList<KeyValue>> rows;
       while ((rows = scanner.nextRows().joinUninterruptibly()) != null) {
         hbase_time += (System.nanoTime() - starttime) / 1000000;
+		LOG.info(">>>>>>>>>>> size of rows : " + rows.size()); 
         for (final ArrayList<KeyValue> row : rows) {
+		  LOG.info(">>>>>>>>>>> size of row : " + row.size()); 
+			
           final byte[] key = row.get(0).key();
           if (Bytes.memcmp(metric, key, 0, metric_width) != 0) {
             throw new IllegalDataException("HBase returned a row that doesn't match"
