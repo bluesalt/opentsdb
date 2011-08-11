@@ -27,6 +27,9 @@ import net.opentsdb.core.WritableDataPoints;
 import net.opentsdb.stats.StatsCollector;
 import net.opentsdb.uid.NoSuchUniqueName;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /** Implements the "put" telnet-style command. */
 final class PutDataPointRpc implements TelnetRpc {
 
@@ -90,7 +93,8 @@ final class PutDataPointRpc implements TelnetRpc {
   }
   
   public static synchronized void printStats() {
-	  System.out.println(errors.addAndGet(-last_errors.get()));
+      Logger log = LoggerFactory.getLogger(PutDataPointRpc.class);
+	  log.info("Error values handled in last second : " + errors.addAndGet(-last_errors.get()));
 	  last_errors.set(errors.get());
   }
 
