@@ -42,6 +42,8 @@ final class PutDataPointRpc implements TelnetRpc {
   private static final AtomicLong errors = new AtomicLong();
   private static final AtomicLong last_errors = new AtomicLong();
 
+  private static Logger log = LoggerFactory.getLogger(PutDataPointRpc.class);
+
   public Deferred<Object> execute(final TSDB tsdb, final Channel chan,
                                   final String[] cmd) {
     requests.incrementAndGet();
@@ -75,7 +77,6 @@ final class PutDataPointRpc implements TelnetRpc {
     }
     if (errmsg != null && chan.isConnected()) {
       chan.write(errmsg);
-	  errors.incrementAndGet();
     }
     return Deferred.fromResult(null);
   }
@@ -93,7 +94,7 @@ final class PutDataPointRpc implements TelnetRpc {
   }
   
   public static synchronized void printStats() {
-      Logger log = LoggerFactory.getLogger(PutDataPointRpc.class);
+	  //log.info("Error values handled in last second : " + errors.get());
 	  log.info("Error values handled in last second : " + errors.addAndGet(-last_errors.get()));
 	  last_errors.set(errors.get());
   }
