@@ -28,6 +28,9 @@ import net.opentsdb.BuildData;
 import net.opentsdb.core.TSDB;
 import net.opentsdb.tsd.PipelineFactory;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 /**
  * Main class of the TSD, the Time Series Daemon.
  */
@@ -138,6 +141,7 @@ final class TSDMain {
         new InetSocketAddress(Integer.parseInt(argp.get("--port")));
       server.bind(addr);
       log.info("Ready to serve on " + addr);
+	  printStatsRepeatedly();
     } catch (Throwable e) {
       factory.releaseExternalResources();
       try {
@@ -185,4 +189,15 @@ final class TSDMain {
     Runtime.getRuntime().addShutdownHook(new TSDBShutdown());
   }
 
+  private static void printStatsRepeatedly() {
+	  int initialDelay = 0;
+	  int period = 1000;
+	  Timer timer = new Timer();
+	  TimerTask task = new TimerTask() {
+		  public void run() {
+			  net.opentsdb.tsd.Hook.printStats();
+		  }
+	  };
+	  timer.scheduleAtFixedRate(task, initialDelay, period);
+  }
 }

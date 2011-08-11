@@ -36,6 +36,9 @@ final class PutDataPointRpc implements TelnetRpc {
   private static final AtomicLong illegal_arguments = new AtomicLong();
   private static final AtomicLong unknown_metrics = new AtomicLong();
 
+  private static final AtomicLong errors = new AtomicLong();
+  private static final AtomicLong last_errors = new AtomicLong();
+
   public Deferred<Object> execute(final TSDB tsdb, final Channel chan,
                                   final String[] cmd) {
     requests.incrementAndGet();
@@ -57,15 +60,19 @@ final class PutDataPointRpc implements TelnetRpc {
     } catch (NumberFormatException x) {
       errmsg = "put: invalid value: " + x.getMessage() + '\n';
       invalid_values.incrementAndGet();
+	  errors.incrementAndGet();
     } catch (IllegalArgumentException x) {
       errmsg = "put: illegal argument: " + x.getMessage() + '\n';
       illegal_arguments.incrementAndGet();
+	  errors.incrementAndGet();
     } catch (NoSuchUniqueName x) {
       errmsg = "put: unknown metric: " + x.getMessage() + '\n';
       unknown_metrics.incrementAndGet();
+	  errors.incrementAndGet();
     }
     if (errmsg != null && chan.isConnected()) {
       chan.write(errmsg);
+	  errors.incrementAndGet();
     }
     return Deferred.fromResult(null);
   }
@@ -80,6 +87,11 @@ final class PutDataPointRpc implements TelnetRpc {
     collector.record("rpc.errors", invalid_values, "type=invalid_values");
     collector.record("rpc.errors", illegal_arguments, "type=illegal_arguments");
     collector.record("rpc.errors", unknown_metrics, "type=unknown_metrics");
+  }
+  
+  public static synchronized void printStats() {
+	  System.out.println(errors.addAndGet(-last_errors.get()));
+	  last_errors.set(errors.get());
   }
 
   /**

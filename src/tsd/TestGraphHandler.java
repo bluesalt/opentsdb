@@ -218,4 +218,8 @@ public final class TestGraphHandler {
     return file;
   }
 
+  public static void hookForPutDataPointRpc() {
+	  PutDataPointRpc.printStats();
+  }
+
 }
