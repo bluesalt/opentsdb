@@ -71,6 +71,7 @@ tsdb_SRC := \
 	src/tsd/StaticFileRpc.java	\
 	src/tsd/TelnetRpc.java	\
 	src/tsd/WordSplitter.java	\
+	src/tsd/Hook.java \
 	src/uid/NoSuchUniqueId.java	\
 	src/uid/NoSuchUniqueName.java	\
 	src/uid/UniqueId.java	\
